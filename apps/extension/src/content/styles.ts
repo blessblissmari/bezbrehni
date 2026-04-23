@@ -53,6 +53,11 @@ export const SHADOW_STYLES = `
   padding: 16px 16px 14px;
   z-index: 2147483646;
   animation: bz-fade-in 0.18s ease;
+  /* Важно: shadow-host выставляет pointer-events: none (чтобы ловить hover под
+     собой на странице), и без явного auto клики уходят сквозь popup — кнопки
+     «не нажимаются», а document-level mousedown-хэндлер видит цель вне shadow
+     и закрывает окно. */
+  pointer-events: auto;
 }
 @keyframes bz-fade-in {
   from { opacity: 0; transform: translateY(4px); }
