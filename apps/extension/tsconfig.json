@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist-ts",
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["chrome", "node"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "paths": {
+      "@bezbrehni/shared": ["../../packages/shared/src/index.ts"],
+      "@bezbrehni/shared/*": ["../../packages/shared/src/*"],
+      "@bezbrehni/ui": ["../../packages/ui/src/index.ts"],
+      "@bezbrehni/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,48 @@
+{
+  "ext_name": {
+    "message": "Безбрехни — AI проверяет контент",
+    "description": "Полное имя расширения"
+  },
+  "ext_short_name": {
+    "message": "Безбрехни",
+    "description": "Короткое имя расширения"
+  },
+  "ext_description": {
+    "message": "Наведите курсор на текст — и AI спокойно объяснит, стоит ли ему доверять.",
+    "description": "Описание в магазине расширений"
+  },
+  "action_check": { "message": "Проверить этот фрагмент" },
+  "btn_close": { "message": "Закрыть" },
+  "btn_retry": { "message": "Попробовать ещё раз" },
+  "loading": { "message": "Смотрим внимательно..." },
+  "popup_welcome_title": { "message": "Добро пожаловать в Безбрехни" },
+  "popup_welcome_desc": { "message": "Наведите курсор на абзац на любой странице — рядом появится кнопка с лупой." },
+  "popup_login": { "message": "Войти" },
+  "popup_signup": { "message": "Создать аккаунт" },
+  "popup_open_cabinet": { "message": "Открыть кабинет" },
+  "popup_logout": { "message": "Выйти" },
+  "popup_plan_free": { "message": "Бесплатный тариф" },
+  "popup_plan_pro": { "message": "Pro активен" },
+  "popup_checks_left": { "message": "Осталось проверок:" },
+  "popup_pro_until": { "message": "Pro до" },
+  "popup_buy_pro": { "message": "Оформить Pro" },
+  "paywall_title": { "message": "Бесплатные проверки закончились" },
+  "paywall_desc": { "message": "Чтобы продолжить, оформите Pro — это открывает все действия на 30 дней." },
+  "paywall_btn": { "message": "Оформить Pro" },
+  "pro_required_title": { "message": "Это действие в Pro" },
+  "pro_required_desc": { "message": "Оформите Pro, чтобы пользоваться всеми инструментами." },
+  "error_network": { "message": "Не удалось связаться с сервером. Проверьте интернет." },
+  "error_generic": { "message": "Что-то пошло не так. Попробуйте ещё раз." },
+  "need_login_title": { "message": "Войдите, чтобы продолжить" },
+  "need_login_desc": { "message": "Откройте расширение (значок вверху браузера) и войдите в аккаунт." },
+  "pro_action_summarize": { "message": "Кратко пересказать" },
+  "pro_action_ask": { "message": "Задать вопрос по фрагменту" },
+  "pro_action_explain": { "message": "Объяснить простыми словами" },
+  "pro_action_find_risks": { "message": "Найти сомнительное" },
+  "pro_action_find_inconsistencies": { "message": "Найти противоречия" },
+  "pro_action_rewrite_clearer": { "message": "Переписать понятнее" },
+  "pro_action_generate_tasks": { "message": "Сгенерировать задачи" },
+  "ask_placeholder": { "message": "Ваш вопрос по этому фрагменту..." },
+  "ask_send": { "message": "Спросить" },
+  "confidence": { "message": "Уверенность" }
+}
