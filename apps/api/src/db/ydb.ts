@@ -86,9 +86,11 @@ export class YdbRepository implements Repository {
         if (typeof v === "string") typedParams[k] = tv.utf8(v);
         else if (typeof v === "boolean") typedParams[k] = tv.bool(v);
         else if (typeof v === "bigint") typedParams[k] = tv.uint64(v);
-        else if (typeof v === "number")
-          typedParams[k] = Number.isInteger(v) ? tv.uint64(v) : tv.double(v);
-        else typedParams[k] = v;
+        else if (typeof v === "number") {
+          // JS-числа заворачиваем в Double. Для Uint64 вызывающий должен передавать BigInt
+          // (иначе YDB отклоняет целочисленное JS-число, завёрнутое как Uint64, в DECLARE ... AS Double).
+          typedParams[k] = tv.double(v);
+        } else typedParams[k] = v;
       }
       const s = sess as {
         executeQuery: (
@@ -285,21 +287,24 @@ export class YdbRepository implements Repository {
     if (!existing) return null;
     // Идемпотентность: повторный webhook не должен продлевать подписку ещё раз.
     if (existing.status === "succeeded") return null;
+    // YDB UPDATE по вторичному индексу не работает — пишем по PK id.
     const sql = `
-      DECLARE $yid AS Utf8;
+      DECLARE $id AS Utf8;
       DECLARE $paid_at AS Utf8;
-      UPDATE payments SET status = "succeeded", paid_at = $paid_at WHERE yookassa_id = $yid;
+      UPDATE payments SET status = "succeeded", paid_at = $paid_at WHERE id = $id;
     `;
-    await this.exec(sql, { $yid: yookassa_id, $paid_at: paid_at.toISOString() });
+    await this.exec(sql, { $id: existing.id, $paid_at: paid_at.toISOString() });
     return { ...existing, status: "succeeded", paid_at: paid_at.toISOString() };
   }
 
   async markPaymentCanceled(yookassa_id: string): Promise<void> {
+    const existing = await this.findPaymentByYookassaId(yookassa_id);
+    if (!existing) return;
     const sql = `
-      DECLARE $yid AS Utf8;
-      UPDATE payments SET status = "canceled" WHERE yookassa_id = $yid;
+      DECLARE $id AS Utf8;
+      UPDATE payments SET status = "canceled" WHERE id = $id;
     `;
-    await this.exec(sql, { $yid: yookassa_id });
+    await this.exec(sql, { $id: existing.id });
   }
 
   async listPayments(user_id: string): Promise<Payment[]> {
