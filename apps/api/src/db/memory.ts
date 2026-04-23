@@ -65,8 +65,10 @@ export class MemoryRepository implements Repository {
     return row;
   }
 
-  async countUsage(user_id: string): Promise<number> {
-    return this.usage.filter((u) => u.user_id === user_id).length;
+  async countUsage(user_id: string, kind?: "analyze" | "pro_action"): Promise<number> {
+    return this.usage.filter(
+      (u) => u.user_id === user_id && (kind ? u.kind === kind : true),
+    ).length;
   }
 
   async recordUsage(user_id: string, kind: "analyze" | "pro_action") {
@@ -96,6 +98,9 @@ export class MemoryRepository implements Repository {
   async markPaymentSucceeded(yookassa_id: string, paid_at: Date): Promise<Payment | null> {
     const p = this.payments.get(yookassa_id);
     if (!p) return null;
+    // Идемпотентность: если платёж уже succeeded — не возвращаем его,
+    // чтобы повторный webhook от ЮKassa не продлил подписку ещё раз.
+    if (p.status === "succeeded") return null;
     const updated: Payment = { ...p, status: "succeeded", paid_at: paid_at.toISOString() };
     this.payments.set(yookassa_id, updated);
     return updated;

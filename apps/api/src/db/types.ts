@@ -29,7 +29,7 @@ export interface Repository {
   getEntitlement(user_id: string): Promise<EntitlementRow>;
   upgradeToPro(user_id: string, until: Date): Promise<EntitlementRow>;
 
-  countUsage(user_id: string): Promise<number>;
+  countUsage(user_id: string, kind?: "analyze" | "pro_action"): Promise<number>;
   recordUsage(user_id: string, kind: "analyze" | "pro_action"): Promise<void>;
 
   recordAnalysis(rec: AnalysisRecord): Promise<void>;

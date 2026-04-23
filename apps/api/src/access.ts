@@ -12,7 +12,10 @@ export interface AccessState {
 
 export async function computeAccess(repo: Repository, user_id: string): Promise<AccessState> {
   const ent = await repo.getEntitlement(user_id);
-  const used = await repo.countUsage(user_id);
+  // На free-лимит считаем только базовые проверки ("analyze"),
+  // чтобы после окончания Pro пользователь не оказался заблокирован из-за
+  // накопленных pro_action событий.
+  const used = await repo.countUsage(user_id, "analyze");
   const now = Date.now();
   const proUntil = ent.pro_until ? new Date(ent.pro_until) : null;
   const isPro = ent.plan === "pro" && proUntil !== null && proUntil.getTime() > now;

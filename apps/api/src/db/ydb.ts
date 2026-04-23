@@ -136,12 +136,20 @@ export class YdbRepository implements Repository {
     return { user_id, plan: "pro", pro_until: until.toISOString() };
   }
 
-  async countUsage(user_id: string): Promise<number> {
-    const sql = `
+  async countUsage(user_id: string, kind?: "analyze" | "pro_action"): Promise<number> {
+    const sql = kind
+      ? `
+      DECLARE $uid AS Utf8;
+      DECLARE $kind AS Utf8;
+      SELECT COUNT(*) AS c FROM usage_events WHERE user_id = $uid AND kind = $kind;
+    `
+      : `
       DECLARE $uid AS Utf8;
       SELECT COUNT(*) AS c FROM usage_events WHERE user_id = $uid;
     `;
-    const res = await this.exec(sql, { $uid: user_id });
+    const params: Record<string, unknown> = { $uid: user_id };
+    if (kind) params.$kind = kind;
+    const res = await this.exec(sql, params);
     const row = res.resultSets[0]?.rows[0];
     const c = row?.c;
     return typeof c === "number" ? c : Number(c ?? 0);
@@ -221,6 +229,8 @@ export class YdbRepository implements Repository {
   async markPaymentSucceeded(yookassa_id: string, paid_at: Date): Promise<Payment | null> {
     const existing = await this.findPaymentByYookassaId(yookassa_id);
     if (!existing) return null;
+    // Идемпотентность: повторный webhook не должен продлевать подписку ещё раз.
+    if (existing.status === "succeeded") return null;
     const sql = `
       DECLARE $yid AS Utf8;
       DECLARE $paid_at AS Utf8;
