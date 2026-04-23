@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  background: #FAF8F4;
+  color: #1B2330;
+}
+
+body {
+  font-feature-settings: "ss01", "cv01";
+}
+
+::selection {
+  background: #E8EFFC;
+  color: #1B2330;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-soft bg-accent text-white px-5 py-3 text-base font-medium shadow-soft hover:bg-accent-dark transition;
+}
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-soft border border-cream-200 bg-white px-5 py-3 text-base font-medium text-ink-900 hover:bg-cream-50 transition;
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-soft px-4 py-2 text-ink-700 hover:bg-cream-100 transition;
+}
+.card {
+  @apply bg-white rounded-soft shadow-soft border border-cream-200;
+}
+.input {
+  @apply w-full rounded-soft border border-cream-200 bg-white px-4 py-3 text-base text-ink-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 transition;
+}
+.label {
+  @apply block text-sm font-medium text-ink-700 mb-1.5;
+}
