@@ -24,7 +24,7 @@ const EXTERNAL = [
 
 await build({
   entryPoints: ["src/index.ts"],
-  outfile: "dist/index.cjs",
+  outfile: "dist/index.js",
   platform: "node",
   target: "node20",
   format: "cjs",
@@ -44,9 +44,14 @@ writeFileSync(
     {
       name: "bezbrehni-api-bundle",
       version: "0.1.0",
-      main: "index.cjs",
+      type: "commonjs",
+      main: "index.js",
       dependencies: {
         "ydb-sdk": rootPkg.dependencies["ydb-sdk"],
+        // ydb-sdk-у нужен @yandex-cloud/nodejs-sdk для metadata auth
+        // (на Yandex Cloud Functions аутентификация идёт через metadata service).
+        "@yandex-cloud/nodejs-sdk":
+          rootPkg.dependencies["@yandex-cloud/nodejs-sdk"] ?? "^2.7.7",
       },
     },
     null,

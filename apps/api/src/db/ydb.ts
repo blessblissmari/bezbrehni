@@ -6,6 +6,20 @@ import type {
   UserRow,
 } from "./types";
 
+type YdbModule = typeof import("ydb-sdk");
+
+// Dynamic `import()` of a CJS module из CJS-бандла в Node 22 может вернуть
+// namespace-обёртку вида `{ default: moduleExports, ... }`. Используем
+// внутри и `default`, и сам объект, чтобы работать с обоими случаями.
+async function loadYdb(): Promise<YdbModule> {
+  const m = (await import("ydb-sdk")) as unknown as {
+    default?: YdbModule;
+  } & YdbModule;
+  if (m.Driver) return m;
+  if (m.default && m.default.Driver) return m.default;
+  return m;
+}
+
 /**
  * Репозиторий поверх YDB. Использует `ydb-sdk` — подключается по endpoint + database path.
  * Аутентификация:
@@ -29,7 +43,7 @@ export class YdbRepository implements Repository {
 
   async init() {
     if (this.ready) return;
-    const ydb = await import("ydb-sdk");
+    const ydb = await loadYdb();
     const credentials = ydb.getCredentialsFromEnv();
     const driver = new ydb.Driver({
       endpoint: this.endpoint,
@@ -44,7 +58,7 @@ export class YdbRepository implements Repository {
 
   private async withSession<T>(fn: (sess: unknown) => Promise<T>): Promise<T> {
     await this.init();
-    const ydb = await import("ydb-sdk");
+    const ydb = await loadYdb();
     const driver = this.driver as InstanceType<(typeof ydb)["Driver"]>;
     return driver.tableClient.withSession(fn as (s: unknown) => Promise<T>);
   }
@@ -54,14 +68,35 @@ export class YdbRepository implements Repository {
     params: Record<string, unknown> = {},
   ): Promise<{ resultSets: Array<{ rows: Array<Record<string, unknown>> }> }> {
     return this.withSession(async (sess) => {
-      const ydb = await import("ydb-sdk");
+      const ydb = await loadYdb();
+      const tv = ydb.TypedValues as unknown as {
+        utf8: (v: string) => unknown;
+        double: (v: number) => unknown;
+        uint64: (v: number | bigint) => unknown;
+        bool: (v: boolean) => unknown;
+      };
+      // YDB требует типизированные значения (TypedValue). Оборачиваем базовые JS-типы,
+      // чтобы вызовам на стороне было удобно передавать обычные значения.
+      const typedParams: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(params)) {
+        if (v === null || v === undefined) {
+          typedParams[k] = null;
+          continue;
+        }
+        if (typeof v === "string") typedParams[k] = tv.utf8(v);
+        else if (typeof v === "boolean") typedParams[k] = tv.bool(v);
+        else if (typeof v === "bigint") typedParams[k] = tv.uint64(v);
+        else if (typeof v === "number")
+          typedParams[k] = Number.isInteger(v) ? tv.uint64(v) : tv.double(v);
+        else typedParams[k] = v;
+      }
       const s = sess as {
         executeQuery: (
           q: string,
           p?: Record<string, unknown>,
         ) => Promise<{ resultSets: unknown[] }>;
       };
-      const res = await s.executeQuery(sql, params);
+      const res = await s.executeQuery(sql, typedParams);
       const out = (res.resultSets ?? []).map((rs) => {
         const typed = ydb.TypedData.createNativeObjects(
           rs as never,
@@ -172,24 +207,43 @@ export class YdbRepository implements Repository {
   }
 
   async recordAnalysis(rec: AnalysisRecord) {
-    const sql = `
-      DECLARE $id AS Utf8;
-      DECLARE $uid AS Utf8;
-      DECLARE $verdict AS Utf8;
-      DECLARE $preview AS Utf8;
-      DECLARE $url AS Utf8?;
-      DECLARE $created_at AS Utf8;
-      UPSERT INTO analyses (id, user_id, verdict, text_preview, page_url, created_at)
-      VALUES ($id, $uid, $verdict, $preview, $url, $created_at);
-    `;
-    await this.exec(sql, {
-      $id: rec.id,
-      $uid: rec.user_id,
-      $verdict: rec.verdict,
-      $preview: rec.text_preview,
-      $url: rec.page_url ?? null,
-      $created_at: rec.created_at,
-    });
+    if (rec.page_url) {
+      const sql = `
+        DECLARE $id AS Utf8;
+        DECLARE $uid AS Utf8;
+        DECLARE $verdict AS Utf8;
+        DECLARE $preview AS Utf8;
+        DECLARE $url AS Utf8;
+        DECLARE $created_at AS Utf8;
+        UPSERT INTO analyses (id, user_id, verdict, text_preview, page_url, created_at)
+        VALUES ($id, $uid, $verdict, $preview, $url, $created_at);
+      `;
+      await this.exec(sql, {
+        $id: rec.id,
+        $uid: rec.user_id,
+        $verdict: rec.verdict,
+        $preview: rec.text_preview,
+        $url: rec.page_url,
+        $created_at: rec.created_at,
+      });
+    } else {
+      const sql = `
+        DECLARE $id AS Utf8;
+        DECLARE $uid AS Utf8;
+        DECLARE $verdict AS Utf8;
+        DECLARE $preview AS Utf8;
+        DECLARE $created_at AS Utf8;
+        UPSERT INTO analyses (id, user_id, verdict, text_preview, page_url, created_at)
+        VALUES ($id, $uid, $verdict, $preview, NULL, $created_at);
+      `;
+      await this.exec(sql, {
+        $id: rec.id,
+        $uid: rec.user_id,
+        $verdict: rec.verdict,
+        $preview: rec.text_preview,
+        $created_at: rec.created_at,
+      });
+    }
   }
 
   async listAnalyses(user_id: string, limit = 50): Promise<AnalysisRecord[]> {

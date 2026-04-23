@@ -34,6 +34,7 @@ export async function handleRequest(
     return json(200, { ok: true });
   }
 
+
   // Публичные
   if (p === "/auth/signup" && req.method === "POST") return postSignup(req, env);
   if (p === "/auth/login" && req.method === "POST") return postLogin(req, env);
