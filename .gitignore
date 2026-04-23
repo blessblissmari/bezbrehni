@@ -19,3 +19,8 @@ apps/web/.next
 apps/web/out
 *.zip
 !apps/extension/dist/.gitkeep
+
+# Локальные секреты (ключи сервисных аккаунтов, S3-креды, JWT-соли) — не коммитить.
+.secrets/
+*.key.json
+sa-key.json

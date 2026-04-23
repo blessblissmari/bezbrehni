@@ -18,7 +18,7 @@ FUNC_NAME="${API_FUNCTION_NAME:-bezbrehni-api}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BUNDLE="${ROOT}/apps/api/dist"
 
-if [[ ! -f "${BUNDLE}/index.cjs" ]]; then
+if [[ ! -f "${BUNDLE}/index.js" ]]; then
   echo "Сначала запустите: pnpm --filter @bezbrehni/api build" >&2
   exit 1
 fi
@@ -39,7 +39,7 @@ echo "Публикуем версию..."
 yc serverless function version create \
   --function-name "${FUNC_NAME}" \
   --folder-id "${YC_FOLDER_ID}" \
-  --runtime nodejs20 \
+  --runtime nodejs22 \
   --entrypoint "index.handler" \
   --memory 256m \
   --execution-timeout 30s \

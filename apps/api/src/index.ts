@@ -18,9 +18,18 @@ export async function handler(
     return await handleRequest(req, env);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    // CORS-заголовки нужны и в 500-ответе, иначе браузер не даст
+    // прочитать тело ошибки в cross-origin fetch (web и extension ходят
+    // с другого origin).
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-Requested-With, Idempotence-Key",
+      },
       body: JSON.stringify({
         error: "internal",
         message: "Внутренняя ошибка сервера",
