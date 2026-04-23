@@ -17,7 +17,10 @@ export async function handler(
   try {
     return await handleRequest(req, env);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+    // Подробности уходят в Cloud Logging (через stderr), клиенту их не отдаём:
+    // иначе может утечь внутреннее (строки подключения YDB, детали ответа
+    // ЮKassa, пути файлов и т. п.).
+    console.error("unhandled error", e);
     // CORS-заголовки нужны и в 500-ответе, иначе браузер не даст
     // прочитать тело ошибки в cross-origin fetch (web и extension ходят
     // с другого origin).
@@ -33,7 +36,6 @@ export async function handler(
       body: JSON.stringify({
         error: "internal",
         message: "Внутренняя ошибка сервера",
-        detail: msg,
       }),
     };
   }

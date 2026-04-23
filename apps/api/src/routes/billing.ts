@@ -74,19 +74,35 @@ export async function postWebhook(req: HttpRequest, env: Env): Promise<HttpRespo
 
   if (fresh.status === "succeeded") {
     // Идемпотентно проставляем succeeded+paid_at и получаем актуальную запись.
-    // Флаг entitlement_applied живёт отдельно: если предыдущий webhook упал
-    // между markPaymentSucceeded и upgradeToPro, мы этим ретраем всё же применим тариф.
     const paid = await repo.markPaymentSucceeded(fresh.id, new Date());
     if (paid && !paid.entitlement_applied) {
       const days = Number(env.YOOKASSA_PRO_DAYS) || 30;
+      // Порядок критичен: сначала пометить платёж применённым, потом продлевать Pro.
+      // Если Cloud Function упадёт между этими двумя вызовами, ЮKassa повторит
+      // webhook, увидит entitlement_applied=true и НЕ продлит тариф ещё раз.
+      // Противоположный порядок (upgrade, потом mark) создавал бы гонку:
+      // ретрай читал бы уже удлинённый pro_until как текущий и стэкал ещё +days.
+      // Если upgradeToPro после markPaymentApplied всё же не состоится — это
+      // видно в логах, и такой редкий случай чинится вручную (саппортом),
+      // финансово это безопаснее двойного продления.
+      await repo.markPaymentApplied(paid.id);
       const cur = await repo.getEntitlement(paid.user_id);
       const baseTime =
         cur.plan === "pro" && cur.pro_until && new Date(cur.pro_until).getTime() > Date.now()
           ? new Date(cur.pro_until).getTime()
           : Date.now();
       const until = new Date(baseTime + days * 86400 * 1000);
-      await repo.upgradeToPro(paid.user_id, until);
-      await repo.markPaymentApplied(paid.id);
+      try {
+        await repo.upgradeToPro(paid.user_id, until);
+      } catch (e) {
+        // Не перебрасываем — иначе ЮKassa начнёт ретраить, но entitlement_applied
+        // уже true и ретрай тариф не поправит. Лог в Cloud Logging заметит саппорт.
+        console.error(
+          "upgradeToPro failed AFTER markPaymentApplied; needs manual fix",
+          { payment_id: paid.id, user_id: paid.user_id, until: until.toISOString() },
+          e,
+        );
+      }
     }
   } else if (fresh.status === "canceled") {
     await repo.markPaymentCanceled(fresh.id);
