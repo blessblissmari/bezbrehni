@@ -16,6 +16,10 @@ interface UsageResp {
   plan: Plan;
   pro_until: string | null;
 }
+interface AuthResp {
+  token: string;
+  user: { id: string; email: string };
+}
 
 function Popup() {
   const [loading, setLoading] = useState(true);
@@ -25,28 +29,44 @@ function Popup() {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const tok = await getToken();
-      if (!tok) {
-        setAuthed(false);
-        setLoading(false);
-        return;
-      }
-      setAuthed(true);
-      try {
-        const [m, u] = await Promise.all([
-          apiCall<MeResp>("/user/me"),
-          apiCall<UsageResp>("/usage"),
-        ]);
-        setMe(m);
-        setUsage(u);
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : "error");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    void refresh();
   }, []);
+
+  async function refresh() {
+    setErr(null);
+    const tok = await getToken();
+    if (!tok) {
+      setAuthed(false);
+      setLoading(false);
+      return;
+    }
+    setAuthed(true);
+    try {
+      const [m, u] = await Promise.all([
+        apiCall<MeResp>("/user/me"),
+        apiCall<UsageResp>("/usage"),
+      ]);
+      setMe(m);
+      setUsage(u);
+    } catch (e) {
+      const err = e as { status?: number; message?: string };
+      // Токен невалиден / истёк — показываем форму входа, не зацикливаем popup.
+      if (err.status === 401) {
+        await setToken(null);
+        setAuthed(false);
+      } else {
+        setErr(err.message ?? "Ошибка");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onAuthSuccess(token: string) {
+    await setToken(token);
+    setLoading(true);
+    await refresh();
+  }
 
   async function logout() {
     await setToken(null);
@@ -74,16 +94,29 @@ function Popup() {
         <p style={{ color: "#5C6475", margin: "10px 0 14px", lineHeight: 1.5 }}>
           {i18n(
             "popup_welcome_desc",
-            "Наведите курсор на абзац на любой странице — рядом появится кнопка с лупой.",
+            "Войдите, чтобы начать. Нет аккаунта — создайте его прямо здесь.",
           )}
         </p>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button style={btnPrimary} onClick={() => openTab("/login")}>
-            {i18n("popup_login", "Войти")}
-          </button>
-          <button style={btnSecondary} onClick={() => openTab("/signup")}>
-            {i18n("popup_signup", "Создать аккаунт")}
-          </button>
+        <AuthForm onSuccess={onAuthSuccess} />
+        <div
+          style={{
+            textAlign: "center",
+            color: "#5C6475",
+            fontSize: 12,
+            marginTop: 12,
+          }}
+        >
+          {i18n("popup_open_site_hint", "Или открыть ")}
+          <a
+            href={`${APP_URL}/login`}
+            onClick={(e) => {
+              e.preventDefault();
+              openTab("/login");
+            }}
+            style={{ color: "#2E5FCB" }}
+          >
+            {i18n("popup_open_site_link", "сайт")}
+          </a>
         </div>
       </div>
     );
@@ -141,6 +174,87 @@ function Popup() {
   );
 }
 
+function AuthForm({ onSuccess }: { onSuccess: (token: string) => void | Promise<void> }) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setError(null);
+    if (!email.includes("@") || password.length < 8) {
+      setError("Введите email и пароль не короче 8 символов");
+      return;
+    }
+    setBusy(true);
+    try {
+      const path = mode === "login" ? "/auth/login" : "/auth/signup";
+      const res = await apiCall<AuthResp>(path, {
+        method: "POST",
+        body: { email: email.trim().toLowerCase(), password },
+        auth: false,
+      });
+      await onSuccess(res.token);
+    } catch (e) {
+      const err = e as { message?: string };
+      setError(err.message ?? "Не получилось войти");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+        <button
+          type="button"
+          onClick={() => setMode("login")}
+          style={mode === "login" ? tabActive : tabIdle}
+        >
+          {i18n("popup_login", "Войти")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("signup")}
+          style={mode === "signup" ? tabActive : tabIdle}
+        >
+          {i18n("popup_signup", "Создать аккаунт")}
+        </button>
+      </div>
+      <input
+        type="email"
+        autoComplete="email"
+        placeholder="email@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={inputStyle}
+        required
+      />
+      <input
+        type="password"
+        autoComplete={mode === "login" ? "current-password" : "new-password"}
+        placeholder={i18n("popup_password_placeholder", "Пароль (минимум 8 символов)")}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        style={inputStyle}
+        minLength={8}
+        required
+      />
+      {error && <div style={{ color: "#B0463E", fontSize: 12 }}>{error}</div>}
+      <button type="submit" style={btnPrimary} disabled={busy}>
+        {busy
+          ? i18n("popup_auth_busy", "Подождите…")
+          : mode === "login"
+            ? i18n("popup_login_submit", "Войти")
+            : i18n("popup_signup_submit", "Создать аккаунт")}
+      </button>
+    </form>
+  );
+}
+
 function Header() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -165,9 +279,11 @@ const btnPrimary: React.CSSProperties = {
   border: "none",
   borderRadius: 10,
   fontSize: 13,
-  fontWeight: 500,
+  fontWeight: 600,
   cursor: "pointer",
+  flex: 1,
 };
+
 const btnSecondary: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -175,14 +291,42 @@ const btnSecondary: React.CSSProperties = {
   padding: "10px 14px",
   background: "#FFFFFF",
   color: "#1B2330",
-  border: "1px solid #E6E3DC",
+  border: "1px solid #D6D1C6",
   borderRadius: 10,
   fontSize: 13,
+  fontWeight: 500,
+  cursor: "pointer",
+  flex: 1,
+};
+
+const inputStyle: React.CSSProperties = {
+  padding: "10px 12px",
+  border: "1px solid #D6D1C6",
+  borderRadius: 10,
+  fontSize: 13,
+  outline: "none",
+  background: "#FFFFFF",
+  color: "#1B2330",
+  fontFamily: "inherit",
+};
+
+const tabIdle: React.CSSProperties = {
+  flex: 1,
+  padding: "6px 10px",
+  background: "transparent",
+  color: "#5C6475",
+  border: "1px solid transparent",
+  borderRadius: 8,
+  fontSize: 12,
   cursor: "pointer",
 };
 
-const container = document.getElementById("root");
-if (container) {
-  const root = createRoot(container);
-  root.render(<Popup />);
-}
+const tabActive: React.CSSProperties = {
+  ...tabIdle,
+  background: "#EFEEE7",
+  color: "#1B2330",
+  border: "1px solid #D6D1C6",
+};
+
+const root = document.getElementById("root");
+if (root) createRoot(root).render(<Popup />);
