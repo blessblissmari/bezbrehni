@@ -268,8 +268,8 @@ export class YdbRepository implements Repository {
       DECLARE $amount AS Double;
       DECLARE $currency AS Utf8;
       DECLARE $created_at AS Utf8;
-      UPSERT INTO payments (id, user_id, yookassa_id, status, amount, currency, created_at, paid_at)
-      VALUES ($id, $uid, $yid, $status, $amount, $currency, $created_at, NULL);
+      UPSERT INTO payments (id, user_id, yookassa_id, status, amount, currency, created_at, paid_at, entitlement_applied)
+      VALUES ($id, $uid, $yid, $status, $amount, $currency, $created_at, NULL, false);
     `;
     await this.exec(sql, {
       $id: p.id,
@@ -285,9 +285,9 @@ export class YdbRepository implements Repository {
   async markPaymentSucceeded(yookassa_id: string, paid_at: Date): Promise<Payment | null> {
     const existing = await this.findPaymentByYookassaId(yookassa_id);
     if (!existing) return null;
-    // Идемпотентность: повторный webhook не должен продлевать подписку ещё раз.
-    if (existing.status === "succeeded") return null;
-    // YDB UPDATE по вторичному индексу не работает — пишем по PK id.
+    // Идемпотентно: если уже succeeded — возвращаем запись как есть,
+    // чтобы вызывающий мог посмотреть на entitlement_applied и доприменить тариф, если нужно.
+    if (existing.status === "succeeded") return existing;
     const sql = `
       DECLARE $id AS Utf8;
       DECLARE $paid_at AS Utf8;
@@ -295,6 +295,14 @@ export class YdbRepository implements Repository {
     `;
     await this.exec(sql, { $id: existing.id, $paid_at: paid_at.toISOString() });
     return { ...existing, status: "succeeded", paid_at: paid_at.toISOString() };
+  }
+
+  async markPaymentApplied(payment_id: string): Promise<void> {
+    const sql = `
+      DECLARE $id AS Utf8;
+      UPDATE payments SET entitlement_applied = true WHERE id = $id;
+    `;
+    await this.exec(sql, { $id: payment_id });
   }
 
   async markPaymentCanceled(yookassa_id: string): Promise<void> {
@@ -310,7 +318,7 @@ export class YdbRepository implements Repository {
   async listPayments(user_id: string): Promise<Payment[]> {
     const sql = `
       DECLARE $uid AS Utf8;
-      SELECT id, user_id, yookassa_id, status, amount, currency, created_at, paid_at
+      SELECT id, user_id, yookassa_id, status, amount, currency, created_at, paid_at, entitlement_applied
       FROM payments WHERE user_id = $uid ORDER BY created_at DESC LIMIT 50;
     `;
     const res = await this.exec(sql, { $uid: user_id });
@@ -320,7 +328,7 @@ export class YdbRepository implements Repository {
   async findPaymentByYookassaId(yookassa_id: string): Promise<Payment | null> {
     const sql = `
       DECLARE $yid AS Utf8;
-      SELECT id, user_id, yookassa_id, status, amount, currency, created_at, paid_at
+      SELECT id, user_id, yookassa_id, status, amount, currency, created_at, paid_at, entitlement_applied
       FROM payments WHERE yookassa_id = $yid LIMIT 1;
     `;
     const res = await this.exec(sql, { $yid: yookassa_id });

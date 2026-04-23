@@ -92,18 +92,31 @@ export class MemoryRepository implements Repository {
   }
 
   async createPendingPayment(p: Omit<Payment, "paid_at">): Promise<void> {
-    this.payments.set(p.yookassa_id, { ...p, paid_at: null });
+    this.payments.set(p.yookassa_id, {
+      ...p,
+      paid_at: null,
+      entitlement_applied: false,
+    });
   }
 
   async markPaymentSucceeded(yookassa_id: string, paid_at: Date): Promise<Payment | null> {
     const p = this.payments.get(yookassa_id);
     if (!p) return null;
-    // Идемпотентность: если платёж уже succeeded — не возвращаем его,
-    // чтобы повторный webhook от ЮKassa не продлил подписку ещё раз.
-    if (p.status === "succeeded") return null;
+    // Идемпотентно. Если уже succeeded — возвращаем как есть, не трогая paid_at.
+    // Решение о применении тарифа принимает вызывающий по флагу entitlement_applied.
+    if (p.status === "succeeded") return p;
     const updated: Payment = { ...p, status: "succeeded", paid_at: paid_at.toISOString() };
     this.payments.set(yookassa_id, updated);
     return updated;
+  }
+
+  async markPaymentApplied(payment_id: string): Promise<void> {
+    for (const [k, p] of this.payments) {
+      if (p.id === payment_id) {
+        this.payments.set(k, { ...p, entitlement_applied: true });
+        return;
+      }
+    }
   }
 
   async markPaymentCanceled(yookassa_id: string) {

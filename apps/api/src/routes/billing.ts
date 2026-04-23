@@ -73,8 +73,11 @@ export async function postWebhook(req: HttpRequest, env: Env): Promise<HttpRespo
   }
 
   if (fresh.status === "succeeded") {
+    // Идемпотентно проставляем succeeded+paid_at и получаем актуальную запись.
+    // Флаг entitlement_applied живёт отдельно: если предыдущий webhook упал
+    // между markPaymentSucceeded и upgradeToPro, мы этим ретраем всё же применим тариф.
     const paid = await repo.markPaymentSucceeded(fresh.id, new Date());
-    if (paid) {
+    if (paid && !paid.entitlement_applied) {
       const days = Number(env.YOOKASSA_PRO_DAYS) || 30;
       const cur = await repo.getEntitlement(paid.user_id);
       const baseTime =
@@ -83,6 +86,7 @@ export async function postWebhook(req: HttpRequest, env: Env): Promise<HttpRespo
           : Date.now();
       const until = new Date(baseTime + days * 86400 * 1000);
       await repo.upgradeToPro(paid.user_id, until);
+      await repo.markPaymentApplied(paid.id);
     }
   } else if (fresh.status === "canceled") {
     await repo.markPaymentCanceled(fresh.id);

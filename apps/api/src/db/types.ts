@@ -36,7 +36,14 @@ export interface Repository {
   listAnalyses(user_id: string, limit?: number): Promise<AnalysisRecord[]>;
 
   createPendingPayment(p: Omit<Payment, "paid_at">): Promise<void>;
+  /**
+   * Идемпотентно проставляет status="succeeded" и paid_at (если ещё не стоял).
+   * Всегда возвращает актуальную запись платежа (или null, если платёж неизвестен),
+   * чтобы вызывающий мог увидеть флаг `entitlement_applied` и решить, нужен ли апгрейд.
+   */
   markPaymentSucceeded(yookassa_id: string, paid_at: Date): Promise<Payment | null>;
+  /** Отмечает, что тариф Pro уже активирован по этому платежу. */
+  markPaymentApplied(payment_id: string): Promise<void>;
   markPaymentCanceled(yookassa_id: string): Promise<void>;
   listPayments(user_id: string): Promise<Payment[]>;
   findPaymentByYookassaId(yookassa_id: string): Promise<Payment | null>;

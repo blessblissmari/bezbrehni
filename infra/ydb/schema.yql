@@ -35,6 +35,10 @@ CREATE TABLE IF NOT EXISTS payments (
     currency Utf8 NOT NULL,
     created_at Utf8 NOT NULL,
     paid_at Utf8,
+    -- Выставляется в TRUE после того, как платёж применён к entitlement'у.
+    -- Отдельно от `status`, потому что запись succeeded-платежа и апгрейд тарифа —
+    -- две независимые операции, и webhook может повторно прийти между ними.
+    entitlement_applied Bool,
     PRIMARY KEY (id),
     INDEX by_user GLOBAL ON (user_id),
     INDEX by_yookassa GLOBAL ON (yookassa_id)

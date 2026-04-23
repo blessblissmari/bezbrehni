@@ -80,6 +80,12 @@ export interface Payment {
   currency: string;
   created_at: string;
   paid_at?: string | null;
+  /**
+   * Флаг «тариф Pro уже активирован по этому платежу». Нужен, чтобы повторный
+   * webhook от ЮKassa не продлевал подписку ещё раз, а упавший между
+   * `markPaymentSucceeded` и `upgradeToPro` webhook мог быть корректно повторён.
+   */
+  entitlement_applied?: boolean | null;
 }
 
 export interface AnalysisRecord {

@@ -30,7 +30,9 @@ export function signJwt(
 ): string {
   const header = { alg: "HS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
-  const full = { iat: now, exp: now + expiresInSec, ...payload };
+  // Порядок важен: iat/exp в конце — чтобы случайный ключ в payload не переопределил
+  // системные поля токена.
+  const full = { ...payload, iat: now, exp: now + expiresInSec };
   const h = b64url(JSON.stringify(header));
   const p = b64url(JSON.stringify(full));
   const sig = createHmac("sha256", secret).update(`${h}.${p}`).digest();
