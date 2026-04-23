@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Расширение и сервис, которые спокойно объясняют, насколько можно доверять тому, что вы читаете в интернете.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_LANDING_URL || "https://xn--80aaxzavh.xn--p1ai",
+    process.env.NEXT_PUBLIC_LANDING_URL || "https://xn--90aalbii8aw0c.xn--p1ai",
   ),
   openGraph: {
     title: "Безбрехни",

@@ -1,6 +1,6 @@
 # Безбрехни — AI-расширение для проверки контента
 
-Production-ready MVP для домена **безбрехни.рф** (`xn--80aaxzavh.xn--p1ai`).
+Production-ready MVP для домена **безбрехни.рф** (`xn--90aalbii8aw0c.xn--p1ai`).
 
 ## Что внутри
 

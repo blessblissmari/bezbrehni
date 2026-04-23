@@ -2,7 +2,7 @@
 
 export const API_URL =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) ||
-  "https://api.xn--80aaxzavh.xn--p1ai";
+  "https://api.xn--90aalbii8aw0c.xn--p1ai";
 
 const TOKEN_KEY = "bezbrehni_token";
 

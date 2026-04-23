@@ -10,10 +10,10 @@ mkdirSync(outdir, { recursive: true });
 const DEFINE = {
   "process.env.NODE_ENV": JSON.stringify(watch ? "development" : "production"),
   "process.env.API_URL": JSON.stringify(
-    process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.xn--80aaxzavh.xn--p1ai",
+    process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.xn--90aalbii8aw0c.xn--p1ai",
   ),
   "process.env.APP_URL": JSON.stringify(
-    process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.xn--80aaxzavh.xn--p1ai",
+    process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.xn--90aalbii8aw0c.xn--p1ai",
   ),
 };
 

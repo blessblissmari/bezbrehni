@@ -80,12 +80,12 @@ export default function LandingPage() {
             Без криков, без рекламы, без суеты.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/signup" className="btn-primary">
-              Начать бесплатно — {FREE_CHECK_LIMIT} проверки
+            <Link href="/install" className="btn-primary">
+              Установить расширение
             </Link>
-            <a href="#how" className="btn-secondary">
-              Посмотреть, как это работает
-            </a>
+            <Link href="/signup" className="btn-secondary">
+              Создать аккаунт — {FREE_CHECK_LIMIT} проверки
+            </Link>
           </div>
           <p className="mt-5 text-sm text-ink-500">
             Без карты. Без навязчивых писем. Отменить можно в один клик.
@@ -208,11 +208,11 @@ export default function LandingPage() {
           </h2>
           <p className="mt-3 text-ink-500">Установка занимает меньше минуты.</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/signup" className="btn-primary">
-              Попробовать бесплатно
+            <Link href="/install" className="btn-primary">
+              Установить расширение
             </Link>
-            <Link href="/billing" className="btn-secondary">
-              Сразу оформить Pro
+            <Link href="/signup" className="btn-secondary">
+              Сначала создать аккаунт
             </Link>
           </div>
         </div>

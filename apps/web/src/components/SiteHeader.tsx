@@ -21,8 +21,8 @@ export default function SiteHeader({ variant = "public" }: { variant?: "public" 
               <Link href="/login" className="btn-ghost">
                 Войти
               </Link>
-              <Link href="/signup" className="btn-primary">
-                Попробовать
+              <Link href="/install" className="btn-primary">
+                Установить
               </Link>
             </>
           ) : (

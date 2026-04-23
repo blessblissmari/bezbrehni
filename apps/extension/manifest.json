@@ -34,7 +34,7 @@
   ],
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
-    "https://api.xn--80aaxzavh.xn--p1ai/*"
+    "https://api.xn--90aalbii8aw0c.xn--p1ai/*"
   ],
   "web_accessible_resources": [
     {

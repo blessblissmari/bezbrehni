@@ -77,14 +77,14 @@ make deploy
 ### 4. Привязать домены
 
 См. [docs/dns.md](docs/dns.md). После создания Cloud Function она получит URL вида
-`https://functions.yandexcloud.net/<id>`. Перед ним поставьте Yandex Cloud API Gateway с custom domain `api.xn--80aaxzavh.xn--p1ai`.
+`https://functions.yandexcloud.net/<id>`. Перед ним поставьте Yandex Cloud API Gateway с custom domain `api.xn--90aalbii8aw0c.xn--p1ai`.
 
-Для сайта привяжите `xn--80aaxzavh.xn--p1ai` и `app.xn--80aaxzavh.xn--p1ai` к Object Storage website endpoint через CNAME (или настройте Cloud CDN c origin = бакет).
+Для сайта привяжите `xn--90aalbii8aw0c.xn--p1ai` и `app.xn--90aalbii8aw0c.xn--p1ai` к Object Storage website endpoint через CNAME (или настройте Cloud CDN c origin = бакет).
 
 ### 5. Настроить webhook ЮKassa
 
 В ЛК ЮKassa → «Уведомления» добавить URL
-`https://api.xn--80aaxzavh.xn--p1ai/billing/webhook` и включить события `payment.succeeded` и `payment.canceled`.
+`https://api.xn--90aalbii8aw0c.xn--p1ai/billing/webhook` и включить события `payment.succeeded` и `payment.canceled`.
 
 ### 6. Загрузить расширение
 
@@ -99,4 +99,4 @@ make deploy
 - **Читать и изменять данные на всех сайтах, которые вы посещаете** — нужно для `activeTab` + работы content script на любой странице. Мы обращаемся только к выделенному блоку и никуда больше.
 - **Сохранять данные в браузере** — для токена авторизации (`storage`).
 
-Ни один host permission, кроме `api.xn--80aaxzavh.xn--p1ai`, мы не запрашиваем.
+Ни один host permission, кроме `api.xn--90aalbii8aw0c.xn--p1ai`, мы не запрашиваем.
