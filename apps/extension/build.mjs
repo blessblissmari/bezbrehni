@@ -13,7 +13,7 @@ const DEFINE = {
     process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.xn--90aalbii8aw0c.xn--p1ai",
   ),
   "process.env.APP_URL": JSON.stringify(
-    process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.xn--90aalbii8aw0c.xn--p1ai",
+    process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://xn--90aalbii8aw0c.xn--p1ai",
   ),
 };
 

@@ -79,7 +79,7 @@ make deploy
 См. [docs/dns.md](docs/dns.md). После создания Cloud Function она получит URL вида
 `https://functions.yandexcloud.net/<id>`. Перед ним поставьте Yandex Cloud API Gateway с custom domain `api.xn--90aalbii8aw0c.xn--p1ai`.
 
-Для сайта привяжите `xn--90aalbii8aw0c.xn--p1ai` и `app.xn--90aalbii8aw0c.xn--p1ai` к Object Storage website endpoint через CNAME (или настройте Cloud CDN c origin = бакет).
+Для сайта привяжите `xn--90aalbii8aw0c.xn--p1ai` и `xn--90aalbii8aw0c.xn--p1ai` к Object Storage website endpoint через CNAME (или настройте Cloud CDN c origin = бакет).
 
 ### 5. Настроить webhook ЮKassa
 

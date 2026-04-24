@@ -4,7 +4,7 @@ export const API_URL =
 
 export const APP_URL =
   (process.env.APP_URL as string | undefined) ||
-  "https://app.xn--90aalbii8aw0c.xn--p1ai";
+  "https://xn--90aalbii8aw0c.xn--p1ai";
 
 export function i18n(key: string, fallback = key): string {
   try {
