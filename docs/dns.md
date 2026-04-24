@@ -10,7 +10,7 @@ Punycode: `xn--90aalbii8aw0c.xn--p1ai`
 | Имя                         | Тип   | Значение                                                                 | Комментарий                                                  |
 | --------------------------- | ----- | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | `xn--90aalbii8aw0c.xn--p1ai.`   | ALIAS/A (или CNAME через CDN) | `<bucket>.website.yandexcloud.net` или CDN-домен | Лендинг (Yandex Object Storage website endpoint) |
-| `app.xn--90aalbii8aw0c.xn--p1ai.` | CNAME | `<bucket>.website.yandexcloud.net` или CDN-домен                         | Личный кабинет (тот же bucket или отдельный)                 |
+| `xn--90aalbii8aw0c.xn--p1ai.` | CNAME | `<bucket>.website.yandexcloud.net` или CDN-домен                         | Личный кабинет (тот же bucket или отдельный)                 |
 | `api.xn--90aalbii8aw0c.xn--p1ai.` | CNAME | `<function-id>.apigw.yandexcloud.net`                                   | API Gateway, перед которым Cloud Function                    |
 | `_acme-challenge.*`         | TXT   | выдаётся CA                                                              | Проверка домена для Let's Encrypt / Yandex Certificate Manager |
 

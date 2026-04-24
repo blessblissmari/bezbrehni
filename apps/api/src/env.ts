@@ -18,11 +18,11 @@ export function loadEnv(): Env {
   const e = process.env;
   return {
     JWT_SECRET: e.JWT_SECRET ?? "",
-    APP_URL: e.APP_URL ?? "https://app.xn--90aalbii8aw0c.xn--p1ai",
+    APP_URL: e.APP_URL ?? "https://xn--90aalbii8aw0c.xn--p1ai",
     API_URL: e.API_URL ?? "https://api.xn--90aalbii8aw0c.xn--p1ai",
     YOOKASSA_RETURN_URL:
       e.YOOKASSA_RETURN_URL ??
-      "https://app.xn--90aalbii8aw0c.xn--p1ai/billing/success",
+      "https://xn--90aalbii8aw0c.xn--p1ai/billing/success",
     YOOKASSA_SHOP_ID: e.YOOKASSA_SHOP_ID ?? "",
     YOOKASSA_SECRET_KEY: e.YOOKASSA_SECRET_KEY ?? "",
     YOOKASSA_PRO_PRICE_RUB: e.YOOKASSA_PRO_PRICE_RUB ?? "299",

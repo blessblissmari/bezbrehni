@@ -46,9 +46,9 @@ yc serverless function version create \
   --service-account-id "${YC_SERVICE_ACCOUNT_ID}" \
   --source-path "${TMP_ZIP}" \
   --environment "JWT_SECRET=${JWT_SECRET:?}" \
-  --environment "APP_URL=${APP_URL:-https://app.xn--90aalbii8aw0c.xn--p1ai}" \
+  --environment "APP_URL=${APP_URL:-https://xn--90aalbii8aw0c.xn--p1ai}" \
   --environment "API_URL=${API_URL:-https://api.xn--90aalbii8aw0c.xn--p1ai}" \
-  --environment "YOOKASSA_RETURN_URL=${YOOKASSA_RETURN_URL:-https://app.xn--90aalbii8aw0c.xn--p1ai/billing/success}" \
+  --environment "YOOKASSA_RETURN_URL=${YOOKASSA_RETURN_URL:-https://xn--90aalbii8aw0c.xn--p1ai/billing/success}" \
   --environment "YDB_ENDPOINT=${YDB_ENDPOINT:?}" \
   --environment "YDB_DATABASE=${YDB_DATABASE:?}" \
   --environment "YANDEX_GPT_API_KEY=${YANDEX_GPT_API_KEY:?}" \
